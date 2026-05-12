@@ -5,6 +5,10 @@ const ENV = typeof import.meta !== "undefined" && import.meta && import.meta.env
 const SUPABASE_URL = ENV.VITE_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = ENV.VITE_SUPABASE_ANON_KEY || "";
 const ADMIN_PIN = ENV.VITE_ADMIN_PIN || "1234";
+const CREATOR_EMAILS = (ENV.VITE_CREATOR_EMAILS || "rcastillo@blackrock.org")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
 const SLIDE_BUCKET = "sermon-slides";
 const DEVICE_ID_KEY = "black-rock-sermon-notes-device-id"; // Legacy fallback only; notes now save by Supabase user ID.
 
@@ -68,10 +72,12 @@ function BrandLogo() {
   return <div className="flex h-12 w-12 items-center justify-center rounded-full text-sm font-black tracking-tight text-white shadow-sm" style={{ backgroundColor: theme.deep }}>BR</div>;
 }
 
-function ModeToggle({ mode, setMode }) {
+function ModeToggle({ mode, setMode, canAccessCreator }) {
   return (
     <div className="inline-flex rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+      {canAccessCreator ? (
       <button onClick={() => setMode("creator")} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition ${mode === "creator" ? "text-white" : "text-slate-600 hover:bg-slate-50"}`} style={mode === "creator" ? { backgroundColor: theme.deep } : undefined}><Icon name="admin" /> Creator View</button>
+      ) : null}
       <button onClick={() => setMode("user")} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition ${mode === "user" ? "text-white" : "text-slate-600 hover:bg-slate-50"}`} style={mode === "user" ? { backgroundColor: theme.teal } : undefined}><Icon name="user" /> User View</button>
     </div>
   );
@@ -306,6 +312,7 @@ function SermonNotesAppInner() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const isCreatorEmail = user?.email ? CREATOR_EMAILS.includes(user.email.toLowerCase()) : false;
   const [pinInput, setPinInput] = useState("");
   const [sermonTitle, setSermonTitle] = useState("Sunday Sermon Notes");
   const [speaker, setSpeaker] = useState("");
@@ -355,6 +362,12 @@ function SermonNotesAppInner() {
     if (selectedSermon?.id && user?.id) loadNotes(selectedSermon.id);
     if (!user?.id) setNotes({});
   }, [selectedSermon?.id, user?.id]);
+
+  useEffect(() => {
+    if (!isCreatorEmail && mode === "creator") {
+      setMode("user");
+    }
+  }, [isCreatorEmail, mode]);
 
   async function loadPublishedSermons() {
     if (!supabase) return;
@@ -626,7 +639,7 @@ function SermonNotesAppInner() {
       <header className="border-b border-white/40 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4"><BrandLogo /><div><div className="text-sm font-bold uppercase tracking-[0.25em]" style={{ color: theme.teal }}>Black Rock Church</div><h1 className="mt-1 text-2xl font-black tracking-tight md:text-4xl" style={{ color: theme.deep }}>Sermon Notes</h1><p className="mt-1 max-w-xl text-sm text-slate-600">Creator uploads Sunday slides. Users add private notes and return later for study.</p></div></div>
-          <div className="flex flex-wrap items-center gap-2"><ModeToggle mode={mode} setMode={(nextMode) => { setMode(nextMode); setCurrentSlide(0); }} />{user ? <BrandButton variant="secondary" onClick={signOut}><Icon name="user" className="mr-2 h-4 w-4" />{getUserDisplayName(user)} · Sign out</BrandButton> : <BrandButton variant="gold" onClick={signInWithGoogle}><Icon name="google" className="mr-2 h-4 w-4" />Sign in with Google</BrandButton>}</div>
+          <div className="flex flex-wrap items-center gap-2"><ModeToggle mode={mode} canAccessCreator={isCreatorEmail} setMode={(nextMode) => { setMode(nextMode); setCurrentSlide(0); }} />{user ? <BrandButton variant="secondary" onClick={signOut}><Icon name="user" className="mr-2 h-4 w-4" />{getUserDisplayName(user)} · Sign out</BrandButton> : <BrandButton variant="gold" onClick={signInWithGoogle}><Icon name="google" className="mr-2 h-4 w-4" />Sign in with Google</BrandButton>}</div>
         </div>
       </header>
 
@@ -634,7 +647,7 @@ function SermonNotesAppInner() {
         <SetupWarning />
         {status ? <BrandCard className="mb-5"><div className="p-4 text-sm font-semibold" style={{ color: theme.deep }}>{status}</div></BrandCard> : null}
 
-        {mode === "creator" ? (
+        {mode === "creator" && isCreatorEmail ? (
           <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
             <section className="space-y-5">
               <BrandCard>
