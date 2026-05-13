@@ -290,12 +290,12 @@ function SlideViewer({ slides, currentSlide }) {
   if (!slides.length) return null;
   const slide = slides[currentSlide];
   return (
-    <div className="mx-auto flex min-h-[520px] items-center justify-center rounded-3xl bg-white p-2 shadow-inner md:min-h-[900px] md:p-4">
+    <div className="mx-auto flex min-h-[360px] items-center justify-center rounded-3xl bg-white p-3 shadow-inner md:min-h-[560px] md:p-5 xl:min-h-[640px]">
       {slide?.url ? (
         <img
           src={slide.url}
           alt={`Slide ${currentSlide + 1}`}
-          className="block max-h-[88vh] w-full rounded-2xl object-contain"
+          className="block max-h-[78vh] w-full rounded-2xl object-contain"
         />
       ) : (
         <div className="max-w-md rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-900">
@@ -685,14 +685,101 @@ function SermonNotesAppInner() {
             <aside className="space-y-5"><BrandCard><div className="p-4"><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Published Sundays</p><h2 className="text-xl font-black" style={{ color: theme.deep }}>Creator library</h2><div className="mt-4 max-h-[560px] space-y-2 overflow-auto pr-1">{publishedSermons.length ? publishedSermons.map((entry) => <div key={entry.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3"><button onClick={() => loadSermonForEditing(entry)} className="block w-full text-left"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em]" style={{ color: theme.teal }}><Icon name="calendar" /> {entry.sermon_date || "Undated"}</div><p className="mt-1 font-black" style={{ color: theme.deep }}>{entry.title}</p><p className="mt-1 text-xs text-slate-500">{entry.slides?.length || 0} slides · Published</p></button><button disabled={!isAdmin} onClick={() => deletePublishedSermon(entry.id)} className="mt-2 text-xs font-bold text-slate-500 hover:text-red-700 disabled:opacity-40">Delete</button></div>) : <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">No sermons published yet.</div>}</div></div></BrandCard></aside>
           </div>
         ) : (
-          <div className="grid gap-5 xl:grid-cols-[280px_minmax(0,1.6fr)_320px]">
-            <aside className="space-y-5"><BrandCard><div className="p-4"><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>User Dashboard</p><h2 className="text-xl font-black" style={{ color: theme.deep }}>Available Sundays</h2><p className="mt-1 text-sm text-slate-500">Sign in with Google, choose a sermon, and take private notes synced to your account.</p><div className="mt-4 space-y-2">{publishedSermons.length ? publishedSermons.map((entry) => <button key={entry.id} onClick={() => { setSelectedSermonId(entry.id); setCurrentSlide(0); }} className={`block w-full rounded-2xl border p-3 text-left transition ${selectedSermon?.id === entry.id ? "text-white" : "border-slate-200 bg-slate-50 hover:bg-white"}`} style={selectedSermon?.id === entry.id ? { backgroundColor: theme.deep, borderColor: theme.deep } : undefined}><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em]" style={selectedSermon?.id === entry.id ? { color: theme.gold } : { color: theme.teal }}><Icon name="calendar" /> {entry.sermon_date || "Undated"}</div><p className="mt-1 font-black">{entry.title}</p><p className="mt-1 text-xs opacity-80">{entry.slides?.length || 0} slides</p></button>) : <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">No Sundays are published yet. Switch to Creator View to publish one.</div>}</div></div></BrandCard></aside>
+          <div className="space-y-5">
+            <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+              <aside className="space-y-5">
+                <BrandCard>
+                  <div className="p-4">
+                    <p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>User Dashboard</p>
+                    <h2 className="text-xl font-black" style={{ color: theme.deep }}>Available Sundays</h2>
+                    <p className="mt-1 text-sm text-slate-500">Sign in with Google, choose a sermon, and take private notes synced to your account.</p>
+                    <div className="mt-4 space-y-2">
+                      {publishedSermons.length ? publishedSermons.map((entry) => (
+                        <button
+                          key={entry.id}
+                          onClick={() => { setSelectedSermonId(entry.id); setCurrentSlide(0); }}
+                          className={`block w-full rounded-2xl border p-3 text-left transition ${selectedSermon?.id === entry.id ? "text-white" : "border-slate-200 bg-slate-50 hover:bg-white"}`}
+                          style={selectedSermon?.id === entry.id ? { backgroundColor: theme.deep, borderColor: theme.deep } : undefined}
+                        >
+                          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em]" style={selectedSermon?.id === entry.id ? { color: theme.gold } : { color: theme.teal }}><Icon name="calendar" /> {entry.sermon_date || "Undated"}</div>
+                          <p className="mt-1 font-black">{entry.title}</p>
+                          <p className="mt-1 text-xs opacity-80">{entry.slides?.length || 0} slides</p>
+                        </button>
+                      )) : (
+                        <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">No Sundays are published yet.</div>
+                      )}
+                    </div>
+                  </div>
+                </BrandCard>
+              </aside>
 
-            <section className="space-y-5"><BrandCard className="overflow-hidden"><div className="border-b bg-white px-4 py-4"><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>{selectedSermon?.sermon_date || "Sunday"}</p><h2 className="text-2xl font-black" style={{ color: theme.deep }}>{selectedSermon?.title || "Select a Sunday sermon"}</h2><p className="mt-1 text-sm text-slate-500">{selectedSermon ? [selectedSermon.speaker, selectedSermon.scripture].filter(Boolean).join(" · ") : "Published sermons will appear in the list."}</p></div><div className="p-3 md:p-5" style={{ backgroundColor: "#eef5f5" }}>{selectedSermon ? <SlideViewer slides={selectedSermon.slides || []} currentSlide={currentSlide} /> : <div className="rounded-3xl bg-white p-10 text-center text-slate-500">Select a Sunday to begin.</div>}</div><div className="flex flex-col gap-3 border-t bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="text-sm font-semibold text-slate-600">{currentSlides.length ? `Slide ${currentSlide + 1} of ${currentSlides.length} · ${progress}% through the message` : "No slides selected"}</div><div className="flex items-center gap-2"><BrandButton variant="secondary" disabled={!currentSlides.length || currentSlide === 0} onClick={() => goToSlide(currentSlide - 1)}><Icon name="previous" className="mr-1 h-4 w-4" />Previous</BrandButton><BrandButton variant="secondary" disabled={!currentSlides.length || currentSlide === currentSlides.length - 1} onClick={() => goToSlide(currentSlide + 1)}>Next<Icon name="next" className="ml-1 h-4 w-4" /></BrandButton></div></div></BrandCard></section>
+              <section className="space-y-5">
+                <BrandCard className="overflow-hidden">
+                  <div className="border-b bg-white px-4 py-4 md:px-6">
+                    <p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>{selectedSermon?.sermon_date || "Sunday"}</p>
+                    <h2 className="max-w-4xl text-2xl font-black md:text-3xl" style={{ color: theme.deep }}>{selectedSermon?.title || "Select a Sunday sermon"}</h2>
+                    <p className="mt-1 text-sm text-slate-500">{selectedSermon ? [selectedSermon.speaker, selectedSermon.scripture].filter(Boolean).join(" · ") : "Published sermons will appear in the list."}</p>
+                  </div>
+                  <div className="p-3 md:p-6" style={{ backgroundColor: "#eef5f5" }}>
+                    {selectedSermon ? <SlideViewer slides={selectedSermon.slides || []} currentSlide={currentSlide} /> : <div className="rounded-3xl bg-white p-10 text-center text-slate-500">Select a Sunday to begin.</div>}
+                  </div>
+                  <div className="flex flex-col gap-3 border-t bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+                    <div className="text-sm font-semibold text-slate-600">{currentSlides.length ? `Slide ${currentSlide + 1} of ${currentSlides.length} · ${progress}% through the message` : "No slides selected"}</div>
+                    <div className="flex items-center gap-2">
+                      <BrandButton variant="secondary" disabled={!currentSlides.length || currentSlide === 0} onClick={() => goToSlide(currentSlide - 1)}><Icon name="previous" className="mr-1 h-4 w-4" />Previous</BrandButton>
+                      <BrandButton variant="secondary" disabled={!currentSlides.length || currentSlide === currentSlides.length - 1} onClick={() => goToSlide(currentSlide + 1)}>Next<Icon name="next" className="ml-1 h-4 w-4" /></BrandButton>
+                    </div>
+                  </div>
+                </BrandCard>
+              </section>
+            </div>
 
-            <aside className="space-y-5"><BrandCard><div className="p-4"><div className="flex items-center justify-between"><div><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Personal study</p><h2 className="text-xl font-black" style={{ color: theme.deep }}>My notes</h2></div><span className="rounded-full px-3 py-1 text-xs font-bold" style={{ backgroundColor: theme.gold, color: theme.deep }}>{noteCount} noted</span></div><textarea disabled={!selectedSermon || !user} className="mt-4 min-h-[320px] w-full resize-none rounded-3xl border border-slate-200 bg-white p-5 text-base leading-8 outline-none focus:ring-2 disabled:bg-slate-50" placeholder={!user ? "Sign in with Google to save your personal notes." : selectedSermon ? `Write your notes for slide ${currentSlide + 1}...` : "Select a Sunday sermon first."} value={currentNote} onChange={(event) => updateUserNote(event.target.value)} /><div className="mt-3 flex flex-wrap gap-2">{user ? <BrandButton disabled={!selectedSermon} variant="gold" onClick={() => setStatus("Notes save automatically to your Google sign-in account.")}><Icon name="save" className="mr-2 h-4 w-4" />Saved</BrandButton> : <BrandButton variant="gold" onClick={signInWithGoogle}><Icon name="google" className="mr-2 h-4 w-4" />Sign in to save</BrandButton>}<BrandButton disabled={!selectedSermon || !user} variant="secondary" onClick={exportPdf}><Icon name="download" className="mr-2 h-4 w-4" />Export PDF</BrandButton></div></div></BrandCard>
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+              <BrandCard>
+                <div className="p-4 md:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Personal study</p>
+                      <h2 className="text-3xl font-black" style={{ color: theme.deep }}>My notes</h2>
+                    </div>
+                    <span className="rounded-full px-4 py-2 text-sm font-bold" style={{ backgroundColor: theme.gold, color: theme.deep }}>{noteCount} noted</span>
+                  </div>
+                  <textarea
+                    disabled={!selectedSermon || !user}
+                    className="mt-5 min-h-[300px] w-full resize-none rounded-3xl border border-slate-200 bg-white p-6 text-lg leading-9 outline-none focus:ring-2 disabled:bg-slate-50 md:min-h-[380px]"
+                    placeholder={!user ? "Sign in with Google to save your personal notes." : selectedSermon ? `Write your notes for slide ${currentSlide + 1}...` : "Select a Sunday sermon first."}
+                    value={currentNote}
+                    onChange={(event) => updateUserNote(event.target.value)}
+                  />
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {user ? <BrandButton disabled={!selectedSermon} variant="gold" onClick={() => setStatus("Notes save automatically to your Google sign-in account.")}><Icon name="save" className="mr-2 h-4 w-4" />Saved</BrandButton> : <BrandButton variant="gold" onClick={signInWithGoogle}><Icon name="google" className="mr-2 h-4 w-4" />Sign in to save</BrandButton>}
+                    <BrandButton disabled={!selectedSermon || !user} variant="secondary" onClick={exportPdf}><Icon name="download" className="mr-2 h-4 w-4" />Export PDF</BrandButton>
+                  </div>
+                </div>
+              </BrandCard>
 
-              <BrandCard><div className="p-4"><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Message outline</p><h2 className="text-xl font-black" style={{ color: theme.deep }}>Slides</h2><div className="mt-4 max-h-[360px] space-y-2 overflow-auto pr-1">{currentSlides.length ? currentSlides.map((slide, index) => <button key={slide.id || slide.path} onClick={() => goToSlide(index)} className={`flex w-full items-center justify-between rounded-2xl border px-3 py-3 text-left text-sm transition ${index === currentSlide ? "text-white shadow-sm" : "border-slate-200 bg-white hover:bg-slate-50"}`} style={index === currentSlide ? { backgroundColor: theme.deep, borderColor: theme.deep } : undefined}><span className="truncate font-semibold">{index + 1}. {slide.name}</span>{notes[index]?.trim() ? <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: index === currentSlide ? "rgba(255,255,255,0.18)" : theme.gold, color: index === currentSlide ? "white" : theme.deep }}>note</span> : null}</button>) : <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">Slides will appear here after choosing a Sunday.</p>}</div></div></BrandCard></aside>
+              <BrandCard>
+                <div className="p-4 md:p-5">
+                  <p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Message outline</p>
+                  <h2 className="text-2xl font-black" style={{ color: theme.deep }}>Slides</h2>
+                  <div className="mt-4 max-h-[460px] space-y-2 overflow-auto pr-1">
+                    {currentSlides.length ? currentSlides.map((slide, index) => (
+                      <button
+                        key={slide.id || slide.path}
+                        onClick={() => goToSlide(index)}
+                        className={`flex w-full items-center justify-between rounded-2xl border px-3 py-3 text-left text-sm transition ${index === currentSlide ? "text-white shadow-sm" : "border-slate-200 bg-white hover:bg-slate-50"}`}
+                        style={index === currentSlide ? { backgroundColor: theme.deep, borderColor: theme.deep } : undefined}
+                      >
+                        <span className="truncate font-semibold">{index + 1}. {slide.name}</span>
+                        {notes[index]?.trim() ? <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: index === currentSlide ? "rgba(255,255,255,0.18)" : theme.gold, color: index === currentSlide ? "white" : theme.deep }}>note</span> : null}
+                      </button>
+                    )) : (
+                      <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">Slides will appear here after choosing a Sunday.</p>
+                    )}
+                  </div>
+                </div>
+              </BrandCard>
+            </div>
           </div>
         )}
       </main>
