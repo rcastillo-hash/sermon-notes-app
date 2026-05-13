@@ -290,8 +290,20 @@ function SlideViewer({ slides, currentSlide }) {
   if (!slides.length) return null;
   const slide = slides[currentSlide];
   return (
-    <div className="mx-auto flex min-h-[280px] items-center justify-center rounded-3xl bg-white p-2 shadow-inner md:min-h-[520px] md:p-4">
-      {slide?.url ? <img src={slide.url} alt={`Slide ${currentSlide + 1}`} className="block max-h-[68vh] max-w-full rounded-2xl object-contain" /> : <div className="max-w-md rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-900"><Icon name="alert" className="mx-auto h-8 w-8" /><p className="mt-3 font-bold">Slide image missing.</p><p className="mt-2 text-sm">Check the Supabase Storage bucket and slide URL.</p></div>}
+    <div className="mx-auto flex min-h-[420px] items-center justify-center rounded-3xl bg-white p-2 shadow-inner md:min-h-[760px] md:p-6">
+      {slide?.url ? (
+        <img
+          src={slide.url}
+          alt={`Slide ${currentSlide + 1}`}
+          className="block max-h-[82vh] w-full rounded-2xl object-contain"
+        />
+      ) : (
+        <div className="max-w-md rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-900">
+          <Icon name="alert" className="mx-auto h-8 w-8" />
+          <p className="mt-3 font-bold">Slide image missing.</p>
+          <p className="mt-2 text-sm">Check the Supabase Storage bucket and slide URL.</p>
+        </div>
+      )}
     </div>
   );
 }
