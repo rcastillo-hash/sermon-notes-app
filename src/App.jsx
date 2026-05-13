@@ -290,12 +290,12 @@ function SlideViewer({ slides, currentSlide }) {
   if (!slides.length) return null;
   const slide = slides[currentSlide];
   return (
-    <div className="mx-auto flex min-h-[360px] items-center justify-center rounded-3xl bg-white p-3 shadow-inner md:min-h-[560px] md:p-5 xl:min-h-[640px]">
+    <div className="mx-auto flex min-h-[240px] items-center justify-center rounded-2xl bg-white p-2 shadow-inner sm:min-h-[320px] md:min-h-[520px] md:rounded-3xl md:p-4 xl:min-h-[680px]">
       {slide?.url ? (
         <img
           src={slide.url}
           alt={`Slide ${currentSlide + 1}`}
-          className="block max-h-[78vh] w-full rounded-2xl object-contain"
+          className="block max-h-[82vh] w-full rounded-xl object-contain md:rounded-2xl"
         />
       ) : (
         <div className="max-w-md rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-900">
@@ -661,7 +661,7 @@ function SermonNotesAppInner() {
 
         {mode === "creator" && isCreatorEmail ? (
           <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
-            <section className="space-y-5">
+            <section className="space-y-4">
               <BrandCard>
                 <div className="border-b p-4"><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Creator Dashboard</p><h2 className="text-2xl font-black" style={{ color: theme.deep }}>Prepare a Sunday sermon</h2><p className="mt-1 text-sm text-slate-500">Staff uploads slides and publishes the sermon for users.</p></div>
                 <div className="grid gap-3 p-4 md:grid-cols-4">
@@ -682,11 +682,11 @@ function SermonNotesAppInner() {
               <div className="flex flex-wrap gap-2"><BrandButton variant="gold" disabled={isLoading || !isAdmin} onClick={publishSermon}><Icon name="save" className="mr-2 h-4 w-4" />{isLoading ? "Publishing..." : "Publish to User Dashboard"}</BrandButton><BrandButton variant="secondary" onClick={() => setMode("user")}>Preview User View</BrandButton></div>
             </section>
 
-            <aside className="space-y-5"><BrandCard><div className="p-4"><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Published Sundays</p><h2 className="text-xl font-black" style={{ color: theme.deep }}>Creator library</h2><div className="mt-4 max-h-[560px] space-y-2 overflow-auto pr-1">{publishedSermons.length ? publishedSermons.map((entry) => <div key={entry.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3"><button onClick={() => loadSermonForEditing(entry)} className="block w-full text-left"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em]" style={{ color: theme.teal }}><Icon name="calendar" /> {entry.sermon_date || "Undated"}</div><p className="mt-1 font-black" style={{ color: theme.deep }}>{entry.title}</p><p className="mt-1 text-xs text-slate-500">{entry.slides?.length || 0} slides · Published</p></button><button disabled={!isAdmin} onClick={() => deletePublishedSermon(entry.id)} className="mt-2 text-xs font-bold text-slate-500 hover:text-red-700 disabled:opacity-40">Delete</button></div>) : <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">No sermons published yet.</div>}</div></div></BrandCard></aside>
+            <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start"><BrandCard><div className="p-4"><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Published Sundays</p><h2 className="text-xl font-black" style={{ color: theme.deep }}>Creator library</h2><div className="mt-4 max-h-[560px] space-y-2 overflow-auto pr-1">{publishedSermons.length ? publishedSermons.map((entry) => <div key={entry.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3"><button onClick={() => loadSermonForEditing(entry)} className="block w-full text-left"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em]" style={{ color: theme.teal }}><Icon name="calendar" /> {entry.sermon_date || "Undated"}</div><p className="mt-1 font-black" style={{ color: theme.deep }}>{entry.title}</p><p className="mt-1 text-xs text-slate-500">{entry.slides?.length || 0} slides · Published</p></button><button disabled={!isAdmin} onClick={() => deletePublishedSermon(entry.id)} className="mt-2 text-xs font-bold text-slate-500 hover:text-red-700 disabled:opacity-40">Delete</button></div>) : <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">No sermons published yet.</div>}</div></div></BrandCard></aside>
           </div>
         ) : (
           <div className="space-y-5">
-            <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+            <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)] xl:gap-5">
               <aside className="space-y-5">
                 <BrandCard>
                   <div className="p-4">
@@ -720,10 +720,10 @@ function SermonNotesAppInner() {
                     <h2 className="max-w-4xl text-2xl font-black md:text-3xl" style={{ color: theme.deep }}>{selectedSermon?.title || "Select a Sunday sermon"}</h2>
                     <p className="mt-1 text-sm text-slate-500">{selectedSermon ? [selectedSermon.speaker, selectedSermon.scripture].filter(Boolean).join(" · ") : "Published sermons will appear in the list."}</p>
                   </div>
-                  <div className="p-3 md:p-6" style={{ backgroundColor: "#eef5f5" }}>
+                  <div className="p-2 sm:p-3 md:p-5 lg:p-6" style={{ backgroundColor: "#eef5f5" }}>
                     {selectedSermon ? <SlideViewer slides={selectedSermon.slides || []} currentSlide={currentSlide} /> : <div className="rounded-3xl bg-white p-10 text-center text-slate-500">Select a Sunday to begin.</div>}
                   </div>
-                  <div className="flex flex-col gap-3 border-t bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+                  <div className="sticky bottom-0 z-20 flex flex-col gap-3 border-t bg-white/95 px-3 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between md:px-6">
                     <div className="text-sm font-semibold text-slate-600">{currentSlides.length ? `Slide ${currentSlide + 1} of ${currentSlides.length} · ${progress}% through the message` : "No slides selected"}</div>
                     <div className="flex items-center gap-2">
                       <BrandButton variant="secondary" disabled={!currentSlides.length || currentSlide === 0} onClick={() => goToSlide(currentSlide - 1)}><Icon name="previous" className="mr-1 h-4 w-4" />Previous</BrandButton>
@@ -734,7 +734,7 @@ function SermonNotesAppInner() {
               </section>
             </div>
 
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1fr)_420px]">
               <BrandCard>
                 <div className="p-4 md:p-6">
                   <div className="flex items-center justify-between">
@@ -746,7 +746,7 @@ function SermonNotesAppInner() {
                   </div>
                   <textarea
                     disabled={!selectedSermon || !user}
-                    className="mt-5 min-h-[300px] w-full resize-none rounded-3xl border border-slate-200 bg-white p-6 text-lg leading-9 outline-none focus:ring-2 disabled:bg-slate-50 md:min-h-[380px]"
+                    className="mt-4 min-h-[220px] w-full resize-none rounded-2xl border border-slate-200 bg-white p-4 text-base leading-8 outline-none focus:ring-2 disabled:bg-slate-50 md:mt-5 md:min-h-[380px] md:rounded-3xl md:p-6 md:text-lg md:leading-9"
                     placeholder={!user ? "Sign in with Google to save your personal notes." : selectedSermon ? `Write your notes for slide ${currentSlide + 1}...` : "Select a Sunday sermon first."}
                     value={currentNote}
                     onChange={(event) => updateUserNote(event.target.value)}
@@ -762,7 +762,7 @@ function SermonNotesAppInner() {
                 <div className="p-4 md:p-5">
                   <p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Message outline</p>
                   <h2 className="text-2xl font-black" style={{ color: theme.deep }}>Slides</h2>
-                  <div className="mt-4 max-h-[460px] space-y-2 overflow-auto pr-1">
+                  <div className="mt-4 max-h-[300px] space-y-2 overflow-auto pr-1 md:max-h-[460px]">
                     {currentSlides.length ? currentSlides.map((slide, index) => (
                       <button
                         key={slide.id || slide.path}
