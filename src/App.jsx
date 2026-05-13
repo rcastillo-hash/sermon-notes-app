@@ -286,15 +286,47 @@ function SetupWarning() {
   );
 }
 
-function SlideViewer({ slides, currentSlide }) {
+function SlideViewer({ slides, currentSlide, onSwipeLeft, onSwipeRight }) {
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
+
   if (!slides.length) return null;
   const slide = slides[currentSlide];
+
+  function handleTouchStart(event) {
+    const touch = event.touches[0];
+    setTouchStartX(touch.clientX);
+    setTouchStartY(touch.clientY);
+  }
+
+  function handleTouchEnd(event) {
+    if (touchStartX === null || touchStartY === null) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    const isHorizontalSwipe = Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25;
+
+    if (isHorizontalSwipe) {
+      if (deltaX < 0) onSwipeLeft?.();
+      if (deltaX > 0) onSwipeRight?.();
+    }
+
+    setTouchStartX(null);
+    setTouchStartY(null);
+  }
+
   return (
-    <div className="mx-auto flex min-h-[240px] items-center justify-center rounded-2xl bg-white p-2 shadow-inner sm:min-h-[320px] md:min-h-[520px] md:rounded-3xl md:p-4 xl:min-h-[680px]">
+    <div
+      className="mx-auto flex min-h-[240px] touch-pan-y select-none items-center justify-center rounded-2xl bg-white p-2 shadow-inner sm:min-h-[320px] md:min-h-[520px] md:rounded-3xl md:p-4 xl:min-h-[680px]"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {slide?.url ? (
         <img
           src={slide.url}
           alt={`Slide ${currentSlide + 1}`}
+          draggable="false"
           className="block max-h-[82vh] w-full rounded-xl object-contain md:rounded-2xl"
         />
       ) : (
@@ -675,7 +707,7 @@ function SermonNotesAppInner() {
 
               <BrandCard className="overflow-hidden">
                 <div className="flex flex-col gap-3 border-b bg-white px-4 py-4 md:flex-row md:items-center md:justify-between"><div><p className="text-sm font-black uppercase tracking-[0.18em]" style={{ color: theme.teal }}>Slide upload</p><h2 className="text-xl font-black" style={{ color: theme.deep }}>Sermon slides</h2><p className="text-sm text-slate-500">Upload JPG or PNG slides. PPT/PPTX conversion can be added later.</p></div><div className="flex flex-wrap gap-2"><input ref={fileInputRef} type="file" multiple accept="image/jpeg,image/png,.jpg,.jpeg,.png,.ppt,.pptx" className="hidden" onChange={handleSlidesUpload} /><BrandButton variant="secondary" onClick={() => fileInputRef.current?.click()}><Icon name="upload" className="mr-2 h-4 w-4" />Upload slides</BrandButton><BrandButton variant="subtle" onClick={clearCurrentSermon}><Icon name="trash" /></BrandButton></div></div>
-                <div className="p-3 md:p-5" style={{ backgroundColor: "#eef5f5" }}>{draftSlides.length ? <SlideViewer slides={draftSlides} currentSlide={currentSlide} /> : <EmptySlideState fileInputRef={fileInputRef} />}</div>
+                <div className="p-3 md:p-5" style={{ backgroundColor: "#eef5f5" }}>{draftSlides.length ? <SlideViewer slides={draftSlides} currentSlide={currentSlide} onSwipeLeft={() => goToSlide(currentSlide + 1)} onSwipeRight={() => goToSlide(currentSlide - 1)} /> : <EmptySlideState fileInputRef={fileInputRef} />}</div>
                 <div className="flex flex-col gap-3 border-t bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between"><div className="text-sm font-semibold text-slate-600">{draftSlides.length ? `Slide ${currentSlide + 1} of ${draftSlides.length} · ${progress}% ready` : "Upload slides to begin"}</div><div className="flex items-center gap-2"><BrandButton variant="secondary" disabled={!draftSlides.length || currentSlide === 0} onClick={() => goToSlide(currentSlide - 1)}><Icon name="previous" className="mr-1 h-4 w-4" />Previous</BrandButton><BrandButton variant="secondary" disabled={!draftSlides.length || currentSlide === draftSlides.length - 1} onClick={() => goToSlide(currentSlide + 1)}>Next<Icon name="next" className="ml-1 h-4 w-4" /></BrandButton></div></div>
               </BrandCard>
 
@@ -721,10 +753,10 @@ function SermonNotesAppInner() {
                     <p className="mt-1 text-sm text-slate-500">{selectedSermon ? [selectedSermon.speaker, selectedSermon.scripture].filter(Boolean).join(" · ") : "Published sermons will appear in the list."}</p>
                   </div>
                   <div className="p-2 sm:p-3 md:p-5 lg:p-6" style={{ backgroundColor: "#eef5f5" }}>
-                    {selectedSermon ? <SlideViewer slides={selectedSermon.slides || []} currentSlide={currentSlide} /> : <div className="rounded-3xl bg-white p-10 text-center text-slate-500">Select a Sunday to begin.</div>}
+                    {selectedSermon ? <SlideViewer slides={selectedSermon.slides || []} currentSlide={currentSlide} onSwipeLeft={() => goToSlide(currentSlide + 1)} onSwipeRight={() => goToSlide(currentSlide - 1)} /> : <div className="rounded-3xl bg-white p-10 text-center text-slate-500">Select a Sunday to begin.</div>}
                   </div>
                   <div className="sticky bottom-0 z-20 flex flex-col gap-3 border-t bg-white/95 px-3 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between md:px-6">
-                    <div className="text-sm font-semibold text-slate-600">{currentSlides.length ? `Slide ${currentSlide + 1} of ${currentSlides.length} · ${progress}% through the message` : "No slides selected"}</div>
+                    <div className="text-sm font-semibold text-slate-600">{currentSlides.length ? `Slide ${currentSlide + 1} of ${currentSlides.length} · ${progress}% through the message · Swipe left/right` : "No slides selected"}</div>
                     <div className="flex items-center gap-2">
                       <BrandButton variant="secondary" disabled={!currentSlides.length || currentSlide === 0} onClick={() => goToSlide(currentSlide - 1)}><Icon name="previous" className="mr-1 h-4 w-4" />Previous</BrandButton>
                       <BrandButton variant="secondary" disabled={!currentSlides.length || currentSlide === currentSlides.length - 1} onClick={() => goToSlide(currentSlide + 1)}>Next<Icon name="next" className="ml-1 h-4 w-4" /></BrandButton>
