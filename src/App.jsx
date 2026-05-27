@@ -677,6 +677,8 @@ function EmptySlideState({ fileInputRef }) {
 function RichTextNoteEditor({ value, onChange, disabled, placeholder, fontSize, setFontSize }) {
   const editorRef = useRef(null);
   const lastHtmlRef = useRef("");
+  const selectionRef = useRef(null);
+  const [selectedColor, setSelectedColor] = useState("#012d36");
 
   useEffect(() => {
     const html = noteToHtml(value);
@@ -686,6 +688,29 @@ function RichTextNoteEditor({ value, onChange, disabled, placeholder, fontSize, 
     }
   }, [value]);
 
+  function saveSelection() {
+    if (typeof window === "undefined" || !editorRef.current) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+
+    if (editorRef.current.contains(range.commonAncestorContainer)) {
+      selectionRef.current = range.cloneRange();
+    }
+  }
+
+  function restoreSelection() {
+    if (typeof window === "undefined" || !selectionRef.current) return;
+
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    selection.removeAllRanges();
+    selection.addRange(selectionRef.current);
+  }
+
   function emitChange() {
     const html = editorRef.current?.innerHTML || "";
     lastHtmlRef.current = html;
@@ -694,21 +719,37 @@ function RichTextNoteEditor({ value, onChange, disabled, placeholder, fontSize, 
 
   function runCommand(command, commandValue = null) {
     if (disabled) return;
+
+    restoreSelection();
     editorRef.current?.focus();
+
     document.execCommand(command, false, commandValue);
+
     emitChange();
+    saveSelection();
+  }
+
+  function applyColor(color) {
+    if (disabled) return;
+
+    setSelectedColor(color);
+    runCommand("foreColor", color);
   }
 
   function handlePaste(event) {
     event.preventDefault();
+
     const text = event.clipboardData.getData("text/plain");
     document.execCommand("insertText", false, text);
+
     emitChange();
+    saveSelection();
   }
 
   function changeFontSize(nextSize) {
     const clamped = Math.max(14, Math.min(28, nextSize));
     setFontSize(clamped);
+
     try {
       window.localStorage.setItem(NOTE_FONT_SIZE_KEY, String(clamped));
     } catch {
@@ -725,40 +766,91 @@ function RichTextNoteEditor({ value, onChange, disabled, placeholder, fontSize, 
       `}</style>
 
       <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
-        <BrandButton type="button" variant="secondary" disabled={disabled} onClick={() => runCommand("bold")} className="px-3">
+        <BrandButton
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => runCommand("bold")}
+          className="px-3"
+        >
           <strong>B</strong>
         </BrandButton>
-        <BrandButton type="button" variant="secondary" disabled={disabled} onClick={() => runCommand("italic")} className="px-3">
+
+        <BrandButton
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => runCommand("italic")}
+          className="px-3"
+        >
           <em>I</em>
         </BrandButton>
-        <BrandButton type="button" variant="secondary" disabled={disabled} onClick={() => runCommand("underline")} className="px-3">
+
+        <BrandButton
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => runCommand("underline")}
+          className="px-3"
+        >
           <u>U</u>
         </BrandButton>
-        <BrandButton type="button" variant="secondary" disabled={disabled} onClick={() => runCommand("insertUnorderedList")}>
+
+        <BrandButton
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => runCommand("insertUnorderedList")}
+        >
           Bullets
         </BrandButton>
-        <BrandButton type="button" variant="secondary" disabled={disabled} onClick={() => runCommand("insertOrderedList")}>
+
+        <BrandButton
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => runCommand("insertOrderedList")}
+        >
           Numbers
         </BrandButton>
-        <BrandButton type="button" variant="secondary" disabled={disabled} onClick={() => changeFontSize(fontSize - 2)}>
+
+        <BrandButton
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => changeFontSize(fontSize - 2)}
+        >
           A-
         </BrandButton>
-        <BrandButton type="button" variant="secondary" disabled={disabled} onClick={() => changeFontSize(fontSize + 2)}>
+
+        <BrandButton
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => changeFontSize(fontSize + 2)}
+        >
           A+
         </BrandButton>
 
-        <div className="flex items-center gap-1 pl-1">
-          {noteColors.map((color) => (
-            <button
-              key={color.value}
-              type="button"
-              title={color.label}
-              disabled={disabled}
-              onClick={() => runCommand("foreColor", color.value)}
-              className="h-8 w-8 rounded-full border border-slate-300 disabled:opacity-40"
-              style={{ backgroundColor: color.value }}
-            />
-          ))}
+        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2">
+          <span className="text-xs font-bold text-slate-600">Color</span>
+          <input
+            type="color"
+            value={selectedColor}
+            disabled={disabled}
+            onMouseDown={saveSelection}
+            onFocus={saveSelection}
+            onChange={(event) => applyColor(event.target.value)}
+            className="h-8 w-10 cursor-pointer rounded border border-slate-200 bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40"
+            title="Choose note color"
+          />
         </div>
       </div>
 
@@ -766,8 +858,14 @@ function RichTextNoteEditor({ value, onChange, disabled, placeholder, fontSize, 
         ref={editorRef}
         contentEditable={!disabled}
         suppressContentEditableWarning
-        onInput={emitChange}
+        onInput={() => {
+          emitChange();
+          saveSelection();
+        }}
         onPaste={handlePaste}
+        onMouseUp={saveSelection}
+        onKeyUp={saveSelection}
+        onFocus={saveSelection}
         data-placeholder={placeholder}
         className="rich-note-editor mt-4 min-h-[220px] w-full overflow-auto rounded-2xl border border-slate-200 bg-white p-4 leading-8 outline-none focus:ring-2 disabled:bg-slate-50 md:min-h-[380px] md:rounded-3xl md:p-6"
         style={{ fontSize }}
